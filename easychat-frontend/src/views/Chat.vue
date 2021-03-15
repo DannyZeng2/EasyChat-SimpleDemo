@@ -4,7 +4,7 @@
  * @Author: Danny Zeng
  * @Date: 2021-03-14 21:22:31
  * @LastEditors: Danny Zeng
- * @LastEditTime: 2021-03-15 01:11:45
+ * @LastEditTime: 2021-03-15 20:04:08
 -->
 <template>
   <div class="main">
@@ -18,14 +18,14 @@
                    @click="sendMsg">Send</el-button>
       </el-col>
     </el-row>
-    <el-input type="textarea"
-              :autosize="{ minRows: 2, maxRows: 10}"
-              v-model="content">
-    </el-input>
+    <div id="content"></div>
   </div>
 </template>
 
 <script>
+const ENTER = 0
+const LEAVE = 1
+
 export default {
   name: 'Chat',
   data() {
@@ -44,9 +44,20 @@ export default {
         type: 'success'
       });
     })
-    this.ws.addEventListener('message', function (msg) {
-      console.log(msg)
-      _this.content += msg.data + '\n'
+    this.ws.addEventListener('message', function (e) {
+      let data = JSON.parse(e.data)
+      console.log(data)
+      var content = document.querySelector('#content')
+      var div = document.createElement('div')
+      div.innerText = data.msg + '------------' + data.time
+      if (data.type === ENTER) {
+        div.style.color = 'green'
+      } else if (data.type === LEAVE) {
+        div.style.color = 'red'
+      } else {
+        div.style.color = 'blue'
+      }
+      content.appendChild(div)
     })
     this.ws.addEventListener('close', function () {
       _this.$message({

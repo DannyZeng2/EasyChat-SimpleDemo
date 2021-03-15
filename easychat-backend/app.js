@@ -4,9 +4,12 @@
  * @Author: Danny Zeng
  * @Date: 2021-03-14 21:02:07
  * @LastEditors: Danny Zeng
- * @LastEditTime: 2021-03-15 01:11:03
+ * @LastEditTime: 2021-03-15 20:06:19
  */
 const ws = require('nodejs-websocket')
+const ENTER = 0
+const LEAVE = 1
+const MESSAGE = 2
 
 
 let count = 0
@@ -14,15 +17,27 @@ const server = ws.createServer(conn => {
   console.log('建立新连接')
   count++
   conn.username = `用户${count}`
-  broadcast(`${conn.username}进入了聊天室`)
+  broadcast({
+    type: ENTER,
+    msg: `${conn.username}进入了聊天室`,
+    time: new Date().toLocaleDateString()
+  })
 
   conn.on('text', data => {
     console.log(data)
-    conn.send(`${conn.username}：${data}`)
+    broadcast({
+      type: MESSAGE,
+      msg: `${conn.username}:${data}`,
+      time: new Date().toLocaleDateString()
+    })
   })
   conn.on('close', data => {
     console.log('关闭连接')
-    broadcast(`${conn.username}离开了聊天室`)
+    broadcast({
+      type: LEAVE,
+      msg: `${conn.username}离开了聊天室`,
+      time: new Date().toLocaleDateString()
+    })
     count--
   })
   conn.on('error', data => {
@@ -34,7 +49,7 @@ const server = ws.createServer(conn => {
 // 广播消息
 function broadcast(msg) {
   server.connections.forEach(item => {
-    item.send(msg)
+    item.send(JSON.stringify(msg))
     console.log(msg)
   })
 }
