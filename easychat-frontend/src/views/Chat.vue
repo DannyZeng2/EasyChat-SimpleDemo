@@ -4,7 +4,7 @@
  * @Author: Danny Zeng
  * @Date: 2021-03-14 21:22:31
  * @LastEditors: Danny Zeng
- * @LastEditTime: 2021-03-15 22:52:24
+ * @LastEditTime: 2021-03-16 20:32:17
 -->
 <template>
   <div class="main">
@@ -21,10 +21,9 @@
     <div id="content"></div>
   </div>
 </template>
-
 <script>
-// const ENTER = 0
-// const LEAVE = 1
+const ENTER = 0
+const LEAVE = 1
 
 export default {
   name: 'Chat',
@@ -32,61 +31,44 @@ export default {
     return {
       input: '',
       content: '',
-
-      id: ''
+      message: ''
     }
   },
+
   sockets: {
     connect() {
       this.$message({
         message: '连接成功！！！',
         type: 'success'
       });
+
     },
+
     disconnect() {
       this.$message({
         message: '连接断开！！！',
         type: 'error'
-      });
+      })
     },
-    receive_message(data) {
-      console.log('接收数据', data)
-      this.$message({
-        message: data.msg,
-        type: 'error'
-      });
+
+    broadcast_msg(data) {
+      var content = document.querySelector('#content')
+      var div = document.createElement('div')
+      div.innerText = `${data.msg} ---${data.time}`
+      if (data.type === ENTER) {
+        div.style.color = 'green'
+      } else if (data.type === LEAVE) {
+        div.style.color = 'red'
+      } else {
+        div.style.color = 'blue'
+      }
+      content.appendChild(div)
     }
   },
-  // mounted: function () {
-  //   var _this = this
-  //   this.sockets.subscribe('message', function (e) {
-  //     let data = JSON.parse(e.data)
-  //     console.log(data)
-  //     var content = document.querySelector('#content')
-  //     var div = document.createElement('div')
-  //     div.innerText = data.msg + '------------' + data.time
-  //     if (data.type === ENTER) {
-  //       div.style.color = 'green'
-  //     } else if (data.type === LEAVE) {
-  //       div.style.color = 'red'
-  //     } else {
-  //       div.style.color = 'blue'
-  //     }
-  //     content.appendChild(div)
-  //   })
-  //   this.ws.subscribe('close', function () {
-  //     _this.$message({
-  //       message: '连接已断开',
-  //       type: 'success'
-  //     });
-  //   })
-  // },
-  props: {
-    msg: String
-  },
+
   methods: {
     sendMsg() {
-      this.$socket.emit(this.input)
+      this.$socket.emit('send_msg', this.input)
     }
   }
 }
@@ -99,5 +81,9 @@ export default {
 }
 #input {
   width: 10px;
+}
+#content {
+  margin-top: 15px;
+  text-align: left;
 }
 </style>
